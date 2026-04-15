@@ -64,13 +64,14 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
         }
 
         EntityLayout[] entitiesToLayout = context.getEntities();
+        int timedEntities = Math.min(entitiesToLayout.length, list.size());
         final int minimumSize = 40;
         double xcursor = 0.0;
         double ycursor = 0.0;
 
         for (int i = 0; i < entitiesToLayout.length; i++) {
             EntityLayout sn = entitiesToLayout[i];
-            long time = i < list.size() ? list.get(i) : 0L;
+            long time = i < timedEntities ? list.get(i) : 0L;
             double percent = totalTime == 0L ? 0.0 : (double) time / (double) totalTime;
             double snWidth = (sn.getSize().width * percent) + minimumSize;
             double snHeight = (sn.getSize().height * percent) + minimumSize;
@@ -79,8 +80,8 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
             if (sn.isResizable()) {
                 sn.setSize(snWidth, snHeight);
             }
-            double x = xcursor;
-            double y = ycursor;
+            double x;
+            double y;
             if (xcursor + snWidth > graphWidth) {
                 //reaching the end of row, move to lower column
                 ycursor += snHeight;
@@ -88,6 +89,8 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
                 x = xcursor;
                 y = ycursor;
             } else {
+                x = xcursor;
+                y = ycursor;
                 xcursor += snWidth;
             }
             if (sn.isMovable()) {
