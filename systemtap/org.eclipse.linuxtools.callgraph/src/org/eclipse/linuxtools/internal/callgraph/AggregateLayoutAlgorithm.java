@@ -48,7 +48,7 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
             list.add(ent.getValue());
         }
 
-        this.totalTime = time.longValue();
+        this.totalTime = time;
         this.graphWidth = width;
     }
 
@@ -68,9 +68,9 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
         double xcursor = 0.0;
         double ycursor = 0.0;
 
-        for (int i = 0; i < entitiesToLayout.length && i < list.size(); i++) {
+        for (int i = 0; i < entitiesToLayout.length; i++) {
             EntityLayout sn = entitiesToLayout[i];
-            long time = list.get(i).longValue();
+            long time = i < list.size() ? list.get(i) : 0L;
             double percent = totalTime == 0L ? 0.0 : (double) time / (double) totalTime;
             double snWidth = (sn.getSize().width * percent) + minimumSize;
             double snHeight = (sn.getSize().height * percent) + minimumSize;
@@ -79,18 +79,19 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
             if (sn.isResizable()) {
                 sn.setSize(snWidth, snHeight);
             }
+            double x = xcursor;
+            double y = ycursor;
             if (xcursor + snWidth > graphWidth) {
                 //reaching the end of row, move to lower column
                 ycursor += snHeight;
                 xcursor = 0;
-                if (sn.isMovable()) {
-                    sn.setLocation(xcursor, ycursor);
-                }
+                x = xcursor;
+                y = ycursor;
             } else {
-                if (sn.isMovable()) {
-                    sn.setLocation(xcursor, ycursor);
-                }
                 xcursor += snWidth;
+            }
+            if (sn.isMovable()) {
+                sn.setLocation(x, y);
             }
         }
     }
