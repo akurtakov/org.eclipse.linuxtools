@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
-import org.eclipse.zest.layouts.LayoutStyles;
 import org.eclipse.zest.layouts.algorithms.GridLayoutAlgorithm;
 import org.eclipse.zest.layouts.interfaces.EntityLayout;
 
@@ -40,9 +39,9 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
      * @param time
      * @param width
      */
-    public AggregateLayoutAlgorithm(int styles, TreeSet<Entry<String, Long>> entries, Long time, int width){
+    public AggregateLayoutAlgorithm(TreeSet<Entry<String, Long>> entries, Long time, int width){
         super();
-        setResizing(styles != LayoutStyles.NO_LAYOUT_NODE_RESIZING);
+        setResizing(true);
 
         list = new ArrayList<>();
         for (Entry<String, Long> ent : entries) {
