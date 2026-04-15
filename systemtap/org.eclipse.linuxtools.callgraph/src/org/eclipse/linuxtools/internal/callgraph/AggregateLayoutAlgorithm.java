@@ -13,23 +13,24 @@
 package org.eclipse.linuxtools.internal.callgraph;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
+import org.eclipse.zest.layouts.LayoutStyles;
 import org.eclipse.zest.layouts.algorithms.GridLayoutAlgorithm;
-import org.eclipse.zest.layouts.dataStructures.InternalNode;
-import org.eclipse.zest.layouts.dataStructures.InternalRelationship;
+import org.eclipse.zest.layouts.interfaces.EntityLayout;
 
 /**
  * Calculates the size and location of a node when rendering the
  * Aggregate View. This avoids needing to design a Layout Algorithm
  * from scratch.
  */
-public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm.Zest1{
+public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm {
 
-    private ArrayList<Long> list;
-    private Long totalTime;
-    private int graphWidth;
+    private final List<Long> list;
+    private final long totalTime;
+    private final int graphWidth;
 
 
     /**
@@ -40,14 +41,15 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm.Zest1{
      * @param width
      */
     public AggregateLayoutAlgorithm(int styles, TreeSet<Entry<String, Long>> entries, Long time, int width){
-        super(styles);
+        super();
+        setResizing(styles != LayoutStyles.NO_LAYOUT_NODE_RESIZING);
 
         list = new ArrayList<>();
         for (Entry<String, Long> ent : entries) {
             list.add(ent.getValue());
         }
 
-        this.totalTime = time;
+        this.totalTime = time.longValue();
         this.graphWidth = width;
     }
 
@@ -56,27 +58,39 @@ public class AggregateLayoutAlgorithm extends GridLayoutAlgorithm.Zest1{
      * of each node according to times called/total time
      */
     @Override
-    protected void postLayoutAlgorithm(InternalNode[] entitiesToLayout,
-            InternalRelationship[] relationshipsToConsider) {
+    public void applyLayout(boolean clean) {
+        super.applyLayout(clean);
+        if (!clean || context == null) {
+            return;
+        }
+
+        EntityLayout[] entitiesToLayout = context.getEntities();
         final int minimumSize = 40;
         double xcursor = 0.0;
         double ycursor = 0.0;
 
-        for (InternalNode sn : entitiesToLayout) {
-            Long time = list.remove(0);
-            double percent = (double) time / (double) totalTime;
-            double snWidth = (sn.getInternalWidth() * percent) + minimumSize;
-            double snHeight = (sn.getInternalHeight() * percent) + minimumSize;
+        for (int i = 0; i < entitiesToLayout.length && i < list.size(); i++) {
+            EntityLayout sn = entitiesToLayout[i];
+            long time = list.get(i).longValue();
+            double percent = totalTime == 0L ? 0.0 : (double) time / (double) totalTime;
+            double snWidth = (sn.getSize().width * percent) + minimumSize;
+            double snHeight = (sn.getSize().height * percent) + minimumSize;
 
 
-            sn.setSize(snWidth, snHeight);
+            if (sn.isResizable()) {
+                sn.setSize(snWidth, snHeight);
+            }
             if (xcursor + snWidth > graphWidth) {
                 //reaching the end of row, move to lower column
                 ycursor += snHeight;
                 xcursor = 0;
-                sn.setLocation(xcursor, ycursor);
+                if (sn.isMovable()) {
+                    sn.setLocation(xcursor, ycursor);
+                }
             } else {
-                sn.setLocation(xcursor, ycursor);
+                if (sn.isMovable()) {
+                    sn.setLocation(xcursor, ycursor);
+                }
                 xcursor += snWidth;
             }
         }
